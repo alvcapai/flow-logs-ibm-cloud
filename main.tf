@@ -201,8 +201,8 @@ locals {
     "jp-osa"   = contains(var.regions, "jp-osa")   ? try(data.ibm_is_vpcs.jp_osa.vpcs,   []) : []
   }
 
-  # Flat map: "<region>/<vpc-id>" → { region, vpc_id, vpc_name }
-  vpc_map = merge([
+  # Full map: "<region>/<vpc-id>" → { region, vpc_id, vpc_name }
+  vpc_map_all = merge([
     for region, vpcs in local.region_vpcs : {
       for vpc in vpcs :
       "${region}/${vpc.id}" => {
@@ -212,19 +212,170 @@ locals {
       }
     }
   ]...)
+
+  # IDs of VPCs that already have a Flow Log Collector — exclude to avoid
+  # "duplicate FLC" errors. Indexed by vpc target ID for fast lookup.
+  existing_collector_targets = toset(flatten([
+    for region in var.regions : [
+      for flc in try(local.existing_flcs[region], []) : flc.target
+    ]
+  ]))
+
+  existing_flcs = {
+    "br-sao"   = contains(var.regions, "br-sao")   ? try(data.ibm_is_flow_logs.existing_br_sao.flow_log_collectors,   []) : []
+    "us-south" = contains(var.regions, "us-south") ? try(data.ibm_is_flow_logs.existing_us_south.flow_log_collectors, []) : []
+    "us-east"  = contains(var.regions, "us-east")  ? try(data.ibm_is_flow_logs.existing_us_east.flow_log_collectors,  []) : []
+    "ca-tor"   = contains(var.regions, "ca-tor")   ? try(data.ibm_is_flow_logs.existing_ca_tor.flow_log_collectors,   []) : []
+    "eu-de"    = contains(var.regions, "eu-de")    ? try(data.ibm_is_flow_logs.existing_eu_de.flow_log_collectors,    []) : []
+    "eu-gb"    = contains(var.regions, "eu-gb")    ? try(data.ibm_is_flow_logs.existing_eu_gb.flow_log_collectors,    []) : []
+    "au-syd"   = contains(var.regions, "au-syd")   ? try(data.ibm_is_flow_logs.existing_au_syd.flow_log_collectors,   []) : []
+    "jp-tok"   = contains(var.regions, "jp-tok")   ? try(data.ibm_is_flow_logs.existing_jp_tok.flow_log_collectors,   []) : []
+    "jp-osa"   = contains(var.regions, "jp-osa")   ? try(data.ibm_is_flow_logs.existing_jp_osa.flow_log_collectors,   []) : []
+  }
+
+  # Final map: only VPCs that do NOT already have a collector
+  vpc_map = {
+    for key, vpc in local.vpc_map_all :
+    key => vpc
+    if !contains(local.existing_collector_targets, vpc.vpc_id)
+  }
+
+  # Per-region sub-maps for static provider assignment
+  vpc_map_br_sao   = { for k, v in local.vpc_map : k => v if v.region == "br-sao" }
+  vpc_map_us_south = { for k, v in local.vpc_map : k => v if v.region == "us-south" }
+  vpc_map_us_east  = { for k, v in local.vpc_map : k => v if v.region == "us-east" }
+  vpc_map_ca_tor   = { for k, v in local.vpc_map : k => v if v.region == "ca-tor" }
+  vpc_map_eu_de    = { for k, v in local.vpc_map : k => v if v.region == "eu-de" }
+  vpc_map_eu_gb    = { for k, v in local.vpc_map : k => v if v.region == "eu-gb" }
+  vpc_map_au_syd   = { for k, v in local.vpc_map : k => v if v.region == "au-syd" }
+  vpc_map_jp_tok   = { for k, v in local.vpc_map : k => v if v.region == "jp-tok" }
+  vpc_map_jp_osa   = { for k, v in local.vpc_map : k => v if v.region == "jp-osa" }
 }
 
 ###############################################################################
-# 5. Flow Log Collector – one per discovered VPC
+# 4b. Discover existing Flow Log Collectors (to skip VPCs already covered)
 ###############################################################################
 
-resource "ibm_is_flow_log" "collectors" {
-  for_each = local.vpc_map
+data "ibm_is_flow_logs" "existing_br_sao"   { provider = ibm.br_sao }
+data "ibm_is_flow_logs" "existing_us_south" { provider = ibm.us_south }
+data "ibm_is_flow_logs" "existing_us_east"  { provider = ibm.us_east }
+data "ibm_is_flow_logs" "existing_ca_tor"   { provider = ibm.ca_tor }
+data "ibm_is_flow_logs" "existing_eu_de"    { provider = ibm.eu_de }
+data "ibm_is_flow_logs" "existing_eu_gb"    { provider = ibm.eu_gb }
+data "ibm_is_flow_logs" "existing_au_syd"   { provider = ibm.au_syd }
+data "ibm_is_flow_logs" "existing_jp_tok"   { provider = ibm.jp_tok }
+data "ibm_is_flow_logs" "existing_jp_osa"   { provider = ibm.jp_osa }
+
+###############################################################################
+# 5. Flow Log Collector – one per VPC, with explicit provider per region
+#    Terraform requires static provider references, so one resource block
+#    per region, each with its own for_each sub-map.
+###############################################################################
+
+resource "ibm_is_flow_log" "collectors_br_sao" {
+  for_each = local.vpc_map_br_sao
+  provider = ibm.br_sao
 
   name           = "flowlog-${each.value.vpc_name}"
   target         = each.value.vpc_id
   active         = true
-  storage_bucket = ibm_cos_bucket.flow_logs[each.value.region].bucket_name
+  storage_bucket = ibm_cos_bucket.flow_logs["br-sao"].bucket_name
+
+  depends_on = [ibm_iam_authorization_policy.flow_logs_to_cos]
+}
+
+resource "ibm_is_flow_log" "collectors_us_south" {
+  for_each = local.vpc_map_us_south
+  provider = ibm.us_south
+
+  name           = "flowlog-${each.value.vpc_name}"
+  target         = each.value.vpc_id
+  active         = true
+  storage_bucket = ibm_cos_bucket.flow_logs["us-south"].bucket_name
+
+  depends_on = [ibm_iam_authorization_policy.flow_logs_to_cos]
+}
+
+resource "ibm_is_flow_log" "collectors_us_east" {
+  for_each = local.vpc_map_us_east
+  provider = ibm.us_east
+
+  name           = "flowlog-${each.value.vpc_name}"
+  target         = each.value.vpc_id
+  active         = true
+  storage_bucket = ibm_cos_bucket.flow_logs["us-east"].bucket_name
+
+  depends_on = [ibm_iam_authorization_policy.flow_logs_to_cos]
+}
+
+resource "ibm_is_flow_log" "collectors_ca_tor" {
+  for_each = local.vpc_map_ca_tor
+  provider = ibm.ca_tor
+
+  name           = "flowlog-${each.value.vpc_name}"
+  target         = each.value.vpc_id
+  active         = true
+  storage_bucket = ibm_cos_bucket.flow_logs["ca-tor"].bucket_name
+
+  depends_on = [ibm_iam_authorization_policy.flow_logs_to_cos]
+}
+
+resource "ibm_is_flow_log" "collectors_eu_de" {
+  for_each = local.vpc_map_eu_de
+  provider = ibm.eu_de
+
+  name           = "flowlog-${each.value.vpc_name}"
+  target         = each.value.vpc_id
+  active         = true
+  storage_bucket = ibm_cos_bucket.flow_logs["eu-de"].bucket_name
+
+  depends_on = [ibm_iam_authorization_policy.flow_logs_to_cos]
+}
+
+resource "ibm_is_flow_log" "collectors_eu_gb" {
+  for_each = local.vpc_map_eu_gb
+  provider = ibm.eu_gb
+
+  name           = "flowlog-${each.value.vpc_name}"
+  target         = each.value.vpc_id
+  active         = true
+  storage_bucket = ibm_cos_bucket.flow_logs["eu-gb"].bucket_name
+
+  depends_on = [ibm_iam_authorization_policy.flow_logs_to_cos]
+}
+
+resource "ibm_is_flow_log" "collectors_au_syd" {
+  for_each = local.vpc_map_au_syd
+  provider = ibm.au_syd
+
+  name           = "flowlog-${each.value.vpc_name}"
+  target         = each.value.vpc_id
+  active         = true
+  storage_bucket = ibm_cos_bucket.flow_logs["au-syd"].bucket_name
+
+  depends_on = [ibm_iam_authorization_policy.flow_logs_to_cos]
+}
+
+resource "ibm_is_flow_log" "collectors_jp_tok" {
+  for_each = local.vpc_map_jp_tok
+  provider = ibm.jp_tok
+
+  name           = "flowlog-${each.value.vpc_name}"
+  target         = each.value.vpc_id
+  active         = true
+  storage_bucket = ibm_cos_bucket.flow_logs["jp-tok"].bucket_name
+
+  depends_on = [ibm_iam_authorization_policy.flow_logs_to_cos]
+}
+
+resource "ibm_is_flow_log" "collectors_jp_osa" {
+  for_each = local.vpc_map_jp_osa
+  provider = ibm.jp_osa
+
+  name           = "flowlog-${each.value.vpc_name}"
+  target         = each.value.vpc_id
+  active         = true
+  storage_bucket = ibm_cos_bucket.flow_logs["jp-osa"].bucket_name
 
   depends_on = [ibm_iam_authorization_policy.flow_logs_to_cos]
 }

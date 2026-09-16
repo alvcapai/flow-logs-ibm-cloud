@@ -19,16 +19,41 @@ output "iam_authorization_policy_id" {
 }
 
 output "flow_log_collectors" {
-  description = "Map of '<region>/<vpc-id>' → collector ID for every VPC enrolled."
-  value       = { for key, col in ibm_is_flow_log.collectors : key => col.id }
+  description = "Map of '<region>/<vpc-id>' → collector ID for every VPC enrolled by this run."
+  value = merge(
+    { for k, v in ibm_is_flow_log.collectors_br_sao   : k => v.id },
+    { for k, v in ibm_is_flow_log.collectors_us_south : k => v.id },
+    { for k, v in ibm_is_flow_log.collectors_us_east  : k => v.id },
+    { for k, v in ibm_is_flow_log.collectors_ca_tor   : k => v.id },
+    { for k, v in ibm_is_flow_log.collectors_eu_de    : k => v.id },
+    { for k, v in ibm_is_flow_log.collectors_eu_gb    : k => v.id },
+    { for k, v in ibm_is_flow_log.collectors_au_syd   : k => v.id },
+    { for k, v in ibm_is_flow_log.collectors_jp_tok   : k => v.id },
+    { for k, v in ibm_is_flow_log.collectors_jp_osa   : k => v.id },
+  )
 }
 
 output "flow_log_collectors_count" {
-  description = "Total number of Flow Log Collectors created across all regions."
-  value       = length(ibm_is_flow_log.collectors)
+  description = "Number of Flow Log Collectors created by this run (excludes pre-existing ones)."
+  value = (
+    length(ibm_is_flow_log.collectors_br_sao)   +
+    length(ibm_is_flow_log.collectors_us_south) +
+    length(ibm_is_flow_log.collectors_us_east)  +
+    length(ibm_is_flow_log.collectors_ca_tor)   +
+    length(ibm_is_flow_log.collectors_eu_de)    +
+    length(ibm_is_flow_log.collectors_eu_gb)    +
+    length(ibm_is_flow_log.collectors_au_syd)   +
+    length(ibm_is_flow_log.collectors_jp_tok)   +
+    length(ibm_is_flow_log.collectors_jp_osa)
+  )
 }
 
 output "vpcs_discovered" {
   description = "Map of '<region>/<vpc-id>' → VPC name for every VPC found during the run."
-  value       = { for key, vpc in local.vpc_map : key => vpc.vpc_name }
+  value       = { for key, vpc in local.vpc_map_all : key => vpc.vpc_name }
+}
+
+output "vpcs_skipped" {
+  description = "VPC IDs skipped because they already have a Flow Log Collector."
+  value       = local.existing_collector_targets
 }
