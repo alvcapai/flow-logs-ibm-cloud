@@ -2,12 +2,6 @@
 # Required
 ###############################################################################
 
-variable "ibmcloud_api_key" {
-  description = "IBM Cloud API key. Mark as sensitive – never commit to source control."
-  type        = string
-  sensitive   = true
-}
-
 variable "regions" {
   description = <<-EOT
     List of IBM Cloud regions to scan for VPCs.
@@ -15,8 +9,8 @@ variable "regions" {
     found in each listed region.
     Supported values: br-sao, us-south, us-east, ca-tor, eu-de, eu-gb, au-syd, jp-tok, jp-osa
   EOT
-  type        = list(string)
-  default     = ["br-sao", "us-south"]
+  type    = list(string)
+  default = ["br-sao", "us-south"]
 
   validation {
     condition = alltrue([
@@ -60,53 +54,6 @@ variable "cos_bucket_name_prefix" {
     Each bucket is named <prefix>-<region>, e.g. enterprise-vpc-flowlogs-br-sao.
     Must be globally unique in IBM Cloud COS.
   EOT
-  type        = string
-  default     = "enterprise-vpc-flowlogs"
-}
-
-###############################################################################
-# Schematics workspace
-###############################################################################
-
-variable "schematics_workspace_name" {
-  description = "Display name for the IBM Cloud Schematics workspace."
-  type        = string
-  default     = "vpc-flow-logs-central"
-}
-
-variable "schematics_location" {
-  description = <<-EOT
-    Location where the Schematics workspace metadata is stored.
-    Valid values: us-south, us-east, eu-de, eu-gb.
-    Independent of VPC regions.
-  EOT
-  type        = string
-  default     = "us-south"
-}
-
-variable "git_repo_url" {
-  description = "HTTPS URL of the Git repository that contains this Terraform configuration."
-  type        = string
-}
-
-variable "git_repo_branch" {
-  description = "Branch in the Git repository to use."
-  type        = string
-  default     = "main"
-}
-
-variable "git_repo_folder" {
-  description = "Subfolder inside the repository where the Terraform root module lives."
-  type        = string
-  default     = "terraform/vpc-flow-logs"
-}
-
-###############################################################################
-# Optional
-###############################################################################
-
-variable "tags" {
-  description = "List of tags to apply to the Schematics workspace."
-  type        = list(string)
-  default     = ["vpc-flow-logs", "networking", "security"]
+  type    = string
+  default = "enterprise-vpc-flowlogs"
 }

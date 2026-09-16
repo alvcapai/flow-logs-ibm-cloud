@@ -9,12 +9,12 @@ output "cos_buckets" {
 }
 
 output "iam_authorization_policy_id" {
-  description = "ID of the account-level IAM authorization that grants Flow Log Collectors Writer access to the COS instance."
+  description = "ID of the account-level IAM authorization (Flow Log Collector → COS Writer)."
   value       = ibm_iam_authorization_policy.flow_logs_to_cos.id
 }
 
 output "flow_log_collectors" {
-  description = "Map of '<region>/<vpc-id>' → collector ID for every VPC discovered and enrolled."
+  description = "Map of '<region>/<vpc-id>' → collector ID for every VPC enrolled."
   value       = { for key, col in ibm_is_flow_log.collectors : key => col.id }
 }
 
@@ -26,14 +26,4 @@ output "flow_log_collectors_count" {
 output "vpcs_discovered" {
   description = "Map of '<region>/<vpc-id>' → VPC name for every VPC found during the run."
   value       = { for key, vpc in local.vpc_map : key => vpc.vpc_name }
-}
-
-output "schematics_workspace_id" {
-  description = "ID of the IBM Cloud Schematics workspace."
-  value       = ibm_schematics_workspace.flow_logs.id
-}
-
-output "schematics_workspace_crn" {
-  description = "CRN of the IBM Cloud Schematics workspace."
-  value       = ibm_schematics_workspace.flow_logs.crn
 }

@@ -1,5 +1,7 @@
 ###############################################################################
-# IBM Cloud VPC Flow Logs – All-VPC Centralized Setup via Schematics Workspace
+# IBM Cloud VPC Flow Logs – All-VPC Centralized Setup
+#
+# Designed to run inside an IBM Cloud Schematics workspace.
 #
 # What this does:
 #   1. For every region in var.regions, discovers ALL VPCs in the account.
@@ -7,12 +9,14 @@
 #   3. Creates one account-level IAM authorization: Flow Log Collector → COS Writer.
 #   4. Creates one VPC-scope Flow Log Collector per discovered VPC, pointing to
 #      the matching regional bucket — all flow data centralizes in one COS instance.
-#   5. Wraps everything in an IBM Cloud Schematics workspace.
+#
+# Authentication:
+#   No API key is needed. When this code runs inside Schematics on the same
+#   account being provisioned, Schematics provides the identity context
+#   automatically — the IBM provider picks it up without any credential variable.
 #
 # Supported regions: br-sao, us-south, us-east, ca-tor, eu-de, eu-gb,
 #                    au-syd, jp-tok, jp-osa
-# To add a region: add the alias block + its data source below and include
-# the region in var.regions.
 ###############################################################################
 
 terraform {
@@ -27,67 +31,58 @@ terraform {
 
 ###############################################################################
 # Provider – one alias per supported IBM Cloud region
-# Only the regions listed in var.regions are actually used.
+# No credentials needed: Schematics supplies the identity context automatically.
+# Only the regions listed in var.regions are actually queried.
 ###############################################################################
 
 provider "ibm" {
-  alias            = "br_sao"
-  region           = "br-sao"
-  ibmcloud_api_key = var.ibmcloud_api_key
+  alias  = "br_sao"
+  region = "br-sao"
 }
 
 provider "ibm" {
-  alias            = "us_south"
-  region           = "us-south"
-  ibmcloud_api_key = var.ibmcloud_api_key
+  alias  = "us_south"
+  region = "us-south"
 }
 
 provider "ibm" {
-  alias            = "us_east"
-  region           = "us-east"
-  ibmcloud_api_key = var.ibmcloud_api_key
+  alias  = "us_east"
+  region = "us-east"
 }
 
 provider "ibm" {
-  alias            = "ca_tor"
-  region           = "ca-tor"
-  ibmcloud_api_key = var.ibmcloud_api_key
+  alias  = "ca_tor"
+  region = "ca-tor"
 }
 
 provider "ibm" {
-  alias            = "eu_de"
-  region           = "eu-de"
-  ibmcloud_api_key = var.ibmcloud_api_key
+  alias  = "eu_de"
+  region = "eu-de"
 }
 
 provider "ibm" {
-  alias            = "eu_gb"
-  region           = "eu-gb"
-  ibmcloud_api_key = var.ibmcloud_api_key
+  alias  = "eu_gb"
+  region = "eu-gb"
 }
 
 provider "ibm" {
-  alias            = "au_syd"
-  region           = "au-syd"
-  ibmcloud_api_key = var.ibmcloud_api_key
+  alias  = "au_syd"
+  region = "au-syd"
 }
 
 provider "ibm" {
-  alias            = "jp_tok"
-  region           = "jp-tok"
-  ibmcloud_api_key = var.ibmcloud_api_key
+  alias  = "jp_tok"
+  region = "jp-tok"
 }
 
 provider "ibm" {
-  alias            = "jp_osa"
-  region           = "jp-osa"
-  ibmcloud_api_key = var.ibmcloud_api_key
+  alias  = "jp_osa"
+  region = "jp-osa"
 }
 
-# Default provider (required by global resources: COS instance, IAM, Schematics)
+# Default provider (used by global resources: COS instance, IAM authorization)
 provider "ibm" {
-  region           = var.regions[0]
-  ibmcloud_api_key = var.ibmcloud_api_key
+  region = var.regions[0]
 }
 
 ###############################################################################
@@ -108,7 +103,7 @@ locals {
 }
 
 ###############################################################################
-# 2. One COS bucket per region  (single-region = same region as its VPCs)
+# 2. One COS bucket per region (single-region = same region as its VPCs)
 ###############################################################################
 
 resource "ibm_cos_bucket" "flow_logs" {
@@ -137,7 +132,7 @@ resource "ibm_iam_authorization_policy" "flow_logs_to_cos" {
 
 ###############################################################################
 # 4. Discover all VPCs per region
-#    One data source per supported region; filtered to active regions below.
+#    One data source per supported region; only regions in var.regions are used.
 ###############################################################################
 
 data "ibm_is_vpcs" "br_sao" {
@@ -169,9 +164,7 @@ data "ibm_is_vpcs" "jp_osa" {
 }
 
 locals {
-  # Map region → list of VPCs returned by the data source for that region.
-  # Regions not present in var.regions produce an empty list, so their VPCs
-  # are excluded from vpc_map without causing errors.
+  # Map region → VPC list. Regions absent from var.regions yield an empty list.
   region_vpcs = {
     "br-sao"   = contains(var.regions, "br-sao")   ? try(data.ibm_is_vpcs.br_sao.vpcs,   []) : []
     "us-south" = contains(var.regions, "us-south") ? try(data.ibm_is_vpcs.us_south.vpcs, []) : []
@@ -185,7 +178,6 @@ locals {
   }
 
   # Flat map: "<region>/<vpc-id>" → { region, vpc_id, vpc_name }
-  # Used as the for_each key for ibm_is_flow_log.collectors.
   vpc_map = merge([
     for region, vpcs in local.region_vpcs : {
       for vpc in vpcs :
@@ -211,53 +203,4 @@ resource "ibm_is_flow_log" "collectors" {
   storage_bucket = ibm_cos_bucket.flow_logs[each.value.region].bucket_name
 
   depends_on = [ibm_iam_authorization_policy.flow_logs_to_cos]
-}
-
-###############################################################################
-# 6. Schematics workspace
-###############################################################################
-
-resource "ibm_schematics_workspace" "flow_logs" {
-  name           = var.schematics_workspace_name
-  description    = "Centralized VPC Flow Logs – all VPCs across ${length(var.regions)} region(s)"
-  location       = var.schematics_location
-  resource_group = var.resource_group_id
-  tags           = var.tags
-
-  template_type = "terraform_v1.5"
-
-  template_git_url    = var.git_repo_url
-  template_git_branch = var.git_repo_branch
-  template_git_folder = var.git_repo_folder
-
-  template_inputs {
-    name   = "ibmcloud_api_key"
-    value  = var.ibmcloud_api_key
-    type   = "string"
-    secure = true
-  }
-
-  template_inputs {
-    name  = "regions"
-    value = jsonencode(var.regions)
-    type  = "string"
-  }
-
-  template_inputs {
-    name  = "resource_group_id"
-    value = var.resource_group_id
-    type  = "string"
-  }
-
-  template_inputs {
-    name  = "cos_bucket_name_prefix"
-    value = var.cos_bucket_name_prefix
-    type  = "string"
-  }
-
-  template_inputs {
-    name  = "schematics_workspace_name"
-    value = var.schematics_workspace_name
-    type  = "string"
-  }
 }
