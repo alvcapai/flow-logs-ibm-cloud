@@ -27,4 +27,4 @@ cos_instance_name        = "cos-vpc-flow-logs-central"
 
 # Prefix for bucket names — each bucket is named <prefix>-<region>.
 # Must be globally unique in IBM Cloud COS.
-cos_bucket_name_prefix = "enterprise-vpc-flowlogs"
+cos_bucket_name_prefix = "vpc-flow-logs-test"

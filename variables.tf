@@ -52,9 +52,9 @@ variable "existing_cos_instance_id" {
 variable "cos_bucket_name_prefix" {
   description = <<-EOT
     Prefix for the per-region COS bucket names.
-    Each bucket is named <prefix>-<region>, e.g. enterprise-vpc-flowlogs-br-sao.
+    Each bucket is named <prefix>-<region>, e.g. vpc-flow-logs-test-br-sao.
     Must be globally unique in IBM Cloud COS.
   EOT
   type    = string
-  default = "enterprise-vpc-flowlogs"
+  default = "vpc-flow-logs-test"
 }

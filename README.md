@@ -16,8 +16,8 @@ Ao ser executado, este Terraform:
 IBM Cloud Account
 │
 ├── COS Instance  (global, único)
-│   ├── Bucket: enterprise-vpc-flowlogs-br-sao
-│   └── Bucket: enterprise-vpc-flowlogs-us-south
+│   ├── Bucket: vpc-flow-logs-test-br-sao
+│   └── Bucket: vpc-flow-logs-test-us-south
 │
 ├── IAM Authorization  (is/flow-log-collector → COS, Writer)
 │
@@ -36,7 +36,7 @@ Nenhuma API key é necessária — o Schematics, ao executar na mesma conta que 
 | Campo | Valor |
 |-------|-------|
 | **Template URL** | URL do repositório Git |
-| **Folder** | `terraform/vpc-flow-logs` |
+| **Folder** | `.` (raiz do repositório) |
 | **Terraform version** | `terraform_v1.5` |
 
 ### Variáveis do workspace
@@ -44,11 +44,11 @@ Nenhuma API key é necessária — o Schematics, ao executar na mesma conta que 
 | Nome | Tipo | Exemplo | Descrição |
 |------|------|---------|-----------|
 | `regions` | list(string) | `["br-sao","us-south"]` | Regiões a varrer |
-| `resource_group_id` | string | `abc123...` | Resource group dos recursos |
+| `resource_group_name` | string | `Default` | Nome do resource group (resolvido para ID automaticamente) |
 | `create_cos_instance` | bool | `true` | Criar novo COS instance |
 | `cos_instance_name` | string | `cos-vpc-flow-logs-central` | Nome do COS instance |
 | `existing_cos_instance_id` | string | `crn:v1:...` | CRN de instância existente |
-| `cos_bucket_name_prefix` | string | `enterprise-vpc-flowlogs` | Prefixo dos buckets por região |
+| `cos_bucket_name_prefix` | string | `vpc-flow-logs-test` | Prefixo dos buckets por região |
 
 ## Regiões suportadas
 
@@ -74,12 +74,14 @@ terraform apply
 
 | Nome | Descrição |
 |------|-----------|
+| `resource_group_id` | ID hex do resource group resolvido |
 | `cos_instance_id` | CRN do COS instance central |
 | `cos_buckets` | Mapa `region → bucket_name` |
 | `iam_authorization_policy_id` | ID da autorização IAM |
 | `flow_log_collectors` | Mapa `<region>/<vpc-id> → collector_id` |
 | `flow_log_collectors_count` | Total de collectors criados |
 | `vpcs_discovered` | Mapa `<region>/<vpc-id> → vpc_name` |
+| `vpcs_skipped` | VPC IDs ignoradas (já tinham collector) |
 
 ## Troubleshooting
 
