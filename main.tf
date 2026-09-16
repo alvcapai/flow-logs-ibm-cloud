@@ -100,6 +100,22 @@ resource "ibm_resource_instance" "cos" {
 
 locals {
   cos_instance_id = var.create_cos_instance ? ibm_resource_instance.cos[0].id : var.existing_cos_instance_id
+
+  # COS single_site_location uses legacy datacenter codes, not VPC region names.
+  # Valid codes (from provider schema): ams03, che01, hkg02, mel01, mex01, mil01,
+  #   mon01, osl01, par01, sjc04, sao01, seo01, sng01, tor01
+  # This map converts VPC region → nearest COS single-site datacenter code.
+  region_to_cos_site = {
+    "br-sao"   = "sao01"   # São Paulo
+    "us-south" = "sjc04"   # San Jose (nearest US South single-site)
+    "us-east"  = "mon01"   # Montreal (nearest US East single-site)
+    "ca-tor"   = "tor01"   # Toronto
+    "eu-de"    = "mil01"   # Milan (nearest EU Frankfurt single-site)
+    "eu-gb"    = "osl01"   # Oslo (nearest EU London single-site)
+    "au-syd"   = "mel01"   # Melbourne (nearest AU Sydney single-site)
+    "jp-tok"   = "seo01"   # Seoul (nearest JP Tokyo single-site)
+    "jp-osa"   = "che01"   # Chennai (nearest JP Osaka single-site)
+  }
 }
 
 ###############################################################################
@@ -111,7 +127,7 @@ resource "ibm_cos_bucket" "flow_logs" {
 
   bucket_name          = "${var.cos_bucket_name_prefix}-${each.key}"
   resource_instance_id = local.cos_instance_id
-  single_site_location = each.key
+  single_site_location = local.region_to_cos_site[each.key]
   storage_class        = "standard"
 }
 
