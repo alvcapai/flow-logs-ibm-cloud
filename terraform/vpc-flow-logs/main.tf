@@ -11,9 +11,9 @@
 #      the matching regional bucket — all flow data centralizes in one COS instance.
 #
 # Authentication:
-#   The IBM provider reads IBMCLOUD_API_KEY from the environment automatically.
-#   Schematics injects this env var from the workspace secure variable — no
-#   ibmcloud_api_key Terraform variable is needed.
+#   No API key is needed. When this code runs inside Schematics on the same
+#   account being provisioned, Schematics provides the identity context
+#   automatically — the IBM provider picks it up without any credential variable.
 #
 # Supported regions: br-sao, us-south, us-east, ca-tor, eu-de, eu-gb,
 #                    au-syd, jp-tok, jp-osa
@@ -31,7 +31,7 @@ terraform {
 
 ###############################################################################
 # Provider – one alias per supported IBM Cloud region
-# Authentication comes from IBMCLOUD_API_KEY env var (set by Schematics).
+# No credentials needed: Schematics supplies the identity context automatically.
 # Only the regions listed in var.regions are actually queried.
 ###############################################################################
 

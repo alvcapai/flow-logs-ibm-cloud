@@ -29,19 +29,15 @@ IBM Cloud Account
     └── vpc-shared    → flowlog-vpc-shared     → bucket us-south
 ```
 
-## Autenticação
-
-O provider IBM lê `IBMCLOUD_API_KEY` do ambiente automaticamente.  
-**Não há uma variável Terraform `ibmcloud_api_key`** — configure a API key diretamente no Schematics como uma variável de ambiente segura (`IBMCLOUD_API_KEY`).
-
 ## Configuração no Schematics
+
+Nenhuma API key é necessária — o Schematics, ao executar na mesma conta que está sendo provisionada, fornece o contexto de identidade automaticamente.
 
 | Campo | Valor |
 |-------|-------|
 | **Template URL** | URL do repositório Git |
 | **Folder** | `terraform/vpc-flow-logs` |
 | **Terraform version** | `terraform_v1.5` |
-| **Environment variable** | `IBMCLOUD_API_KEY` = `<sua api key>` (marcar como sensitive) |
 
 ### Variáveis do workspace
 
@@ -61,7 +57,7 @@ O provider IBM lê `IBMCLOUD_API_KEY` do ambiente automaticamente.
 ## Execução local (para testes)
 
 ```bash
-# 1. Exporte a API key como variável de ambiente
+# 1. Exporte a API key — necessário apenas fora do Schematics
 export IBMCLOUD_API_KEY="<sua api key>"
 
 # 2. Crie o arquivo de variáveis
