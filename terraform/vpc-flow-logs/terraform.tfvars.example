@@ -1,0 +1,43 @@
+###############################################################################
+# terraform.tfvars.example
+#
+# Copy to terraform.tfvars and fill in your values.
+# NEVER commit terraform.tfvars — it contains your API key.
+###############################################################################
+
+# -- Required ----------------------------------------------------------------
+
+ibmcloud_api_key  = "YOUR_IBM_CLOUD_API_KEY"
+
+# Regions to scan. A Flow Log Collector is created for EVERY VPC found in each
+# region. Supported: br-sao, us-south, us-east, ca-tor, eu-de, eu-gb, au-syd, jp-tok, jp-osa
+regions = ["br-sao", "us-south"]
+
+# Resource group that will own all resources.
+resource_group_id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# Git repository Schematics pulls this configuration from.
+git_repo_url = "https://github.com/your-org/your-repo"
+
+# -- COS ---------------------------------------------------------------------
+
+# Set to false and provide existing_cos_instance_id if you already have a COS instance.
+create_cos_instance      = true
+cos_instance_name        = "cos-vpc-flow-logs-central"
+# existing_cos_instance_id = "crn:v1:bluemix:public:cloud-object-storage:global::a/..."
+
+# Prefix for bucket names. Each bucket is named <prefix>-<region>.
+# Must be globally unique in IBM Cloud COS.
+cos_bucket_name_prefix = "enterprise-vpc-flowlogs"
+# Results in: enterprise-vpc-flowlogs-br-sao, enterprise-vpc-flowlogs-us-south, etc.
+
+# -- Schematics workspace ----------------------------------------------------
+
+schematics_workspace_name = "vpc-flow-logs-central"
+schematics_location       = "us-south"   # workspace metadata location
+git_repo_branch           = "main"
+git_repo_folder           = "terraform/vpc-flow-logs"
+
+# -- Optional ----------------------------------------------------------------
+
+tags = ["vpc-flow-logs", "networking", "security"]

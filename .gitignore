@@ -1,0 +1,17 @@
+# Terraform – never commit these
+**/.terraform/
+**/.terraform.lock.hcl
+**/terraform.tfvars
+**/*.auto.tfvars
+**/terraform.tfstate
+**/terraform.tfstate.backup
+**/.terraform.tfstate.lock.info
+**/crash.log
+**/crash.*.log
+**/override.tf
+**/override.tf.json
+**/*_override.tf
+**/*_override.tf.json
+
+# Bob temp files
+.bob/
