@@ -21,9 +21,10 @@ variable "regions" {
   }
 }
 
-variable "resource_group_id" {
-  description = "ID of the resource group that will own all resources created by this configuration."
+variable "resource_group_name" {
+  description = "Name of the IBM Cloud resource group that will own all resources (e.g. Default, RG-alvaro). The ID is resolved automatically via data source."
   type        = string
+  default     = "Default"
 }
 
 ###############################################################################

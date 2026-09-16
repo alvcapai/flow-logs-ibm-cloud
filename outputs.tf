@@ -1,3 +1,8 @@
+output "resource_group_id" {
+  description = "Resolved hex ID of the resource group used for all resources."
+  value       = data.ibm_resource_group.target.id
+}
+
 output "cos_instance_id" {
   description = "CRN of the central COS instance that holds all regional flow log buckets."
   value       = local.cos_instance_id

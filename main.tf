@@ -86,13 +86,21 @@ provider "ibm" {
 }
 
 ###############################################################################
+# 0. Resolve resource group name → ID
+###############################################################################
+
+data "ibm_resource_group" "target" {
+  name = var.resource_group_name
+}
+
+###############################################################################
 # 1. COS instance – single global instance that holds all regional buckets
 ###############################################################################
 
 resource "ibm_resource_instance" "cos" {
   count             = var.create_cos_instance ? 1 : 0
   name              = var.cos_instance_name
-  resource_group_id = var.resource_group_id
+  resource_group_id = data.ibm_resource_group.target.id
   service           = "cloud-object-storage"
   plan              = "standard"
   location          = "global"
