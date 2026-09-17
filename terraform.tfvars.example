@@ -25,6 +25,6 @@ create_cos_instance      = true
 cos_instance_name        = "cos-vpc-flow-logs-central"
 # existing_cos_instance_id = "crn:v1:bluemix:public:cloud-object-storage:global::a/..."
 
-# Prefix for bucket names — each bucket is named <prefix>-<region>.
-# Must be globally unique in IBM Cloud COS.
-cos_bucket_name_prefix = "vpc-flow-logs-test"
+# Short account identifier used to name the single COS bucket: vpc-flow-log-<account_name>.
+# Must produce a globally unique bucket name in IBM Cloud COS.
+account_name = "acme-prod"

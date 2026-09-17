@@ -49,12 +49,11 @@ variable "existing_cos_instance_id" {
   default     = ""
 }
 
-variable "cos_bucket_name_prefix" {
+variable "account_name" {
   description = <<-EOT
-    Prefix for the per-region COS bucket names.
-    Each bucket is named <prefix>-<region>, e.g. vpc-flow-logs-test-br-sao.
-    Must be globally unique in IBM Cloud COS.
+    Short identifier for the IBM Cloud account (e.g. acme-prod).
+    Used to name the single COS bucket: vpc-flow-log-<account-name>.
+    Must produce a globally unique bucket name in IBM Cloud COS.
   EOT
-  type    = string
-  default = "vpc-flow-logs-test"
+  type = string
 }

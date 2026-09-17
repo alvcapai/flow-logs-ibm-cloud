@@ -8,9 +8,9 @@ output "cos_instance_id" {
   value       = local.cos_instance_id
 }
 
-output "cos_buckets" {
-  description = "Map of region → COS bucket name created for flow log storage."
-  value       = { for region, bucket in ibm_cos_bucket.flow_logs : region => bucket.bucket_name }
+output "cos_bucket" {
+  description = "Name of the single account-level COS bucket used for all flow log storage."
+  value       = ibm_cos_bucket.flow_logs.bucket_name
 }
 
 output "iam_authorization_policy_id" {
