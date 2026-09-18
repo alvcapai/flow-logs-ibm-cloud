@@ -49,11 +49,8 @@ variable "existing_cos_instance_id" {
   default     = ""
 }
 
-variable "account_name" {
-  description = <<-EOT
-    Short identifier for the IBM Cloud account (e.g. acme-prod).
-    Used to name the single COS bucket: vpc-flow-log-<account-name>.
-    Must produce a globally unique bucket name in IBM Cloud COS.
-  EOT
+variable "cos_bucket_name_prefix" {
+  description = "Prefix for the COS bucket name (e.g. vpc-flow-logs-test). The bucket will be named <cos_bucket_name_prefix>-flow-logs."
   type        = string
+  default     = "vpc-flow-logs-test"
 }

@@ -116,7 +116,7 @@ locals {
 
 resource "ibm_cos_bucket" "flow_logs" {
   bucket_name          = "${var.cos_bucket_name_prefix}-flow-logs"
-  resource_instance_id = ibm_resource_instance.cos.id
+  resource_instance_id = local.cos_instance_id
   region_location      = "eu-de"      # was single_region_location
   storage_class        = "standard"
 }
