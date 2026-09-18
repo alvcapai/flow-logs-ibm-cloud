@@ -9,8 +9,8 @@ variable "regions" {
     found in each listed region.
     Supported values: br-sao, us-south, us-east, ca-tor, eu-de, eu-gb, au-syd, jp-tok, jp-osa
   EOT
-  type    = list(string)
-  default = ["br-sao", "us-south"]
+  type        = list(string)
+  default     = ["eu-de"]
 
   validation {
     condition = alltrue([
@@ -55,5 +55,5 @@ variable "account_name" {
     Used to name the single COS bucket: vpc-flow-log-<account-name>.
     Must produce a globally unique bucket name in IBM Cloud COS.
   EOT
-  type = string
+  type        = string
 }

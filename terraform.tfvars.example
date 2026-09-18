@@ -11,7 +11,7 @@
 
 # Regions to scan. A Flow Log Collector is created for EVERY VPC found in each.
 # Supported: br-sao, us-south, us-east, ca-tor, eu-de, eu-gb, au-syd, jp-tok, jp-osa
-regions = ["br-sao", "us-south"]
+regions = ["eu-de"]
 
 # Name of the resource group that will own all resources.
 # Use the name exactly as shown in IBM Cloud (e.g. Default, RG-alvaro).

@@ -111,14 +111,14 @@ locals {
 }
 
 ###############################################################################
-# 2. One COS bucket per account (cross-region us-geo) shared by all regions
+# 2. One COS bucket per account (single-region eu-de) shared by all regions
 ###############################################################################
 
 resource "ibm_cos_bucket" "flow_logs" {
-  bucket_name           = "vpc-flow-log-${var.account_name}"
-  resource_instance_id  = local.cos_instance_id
-  cross_region_location = "us"
-  storage_class         = "standard"
+  bucket_name            = "vpc-flow-log-${var.account_name}"
+  resource_instance_id   = local.cos_instance_id
+  single_region_location = "eu-de"
+  storage_class          = "standard"
 }
 
 ###############################################################################
@@ -172,15 +172,15 @@ data "ibm_is_vpcs" "jp_osa" {
 locals {
   # Map region → VPC list. Regions absent from var.regions yield an empty list.
   region_vpcs = {
-    "br-sao"   = contains(var.regions, "br-sao")   ? try(data.ibm_is_vpcs.br_sao.vpcs,   []) : []
+    "br-sao"   = contains(var.regions, "br-sao") ? try(data.ibm_is_vpcs.br_sao.vpcs, []) : []
     "us-south" = contains(var.regions, "us-south") ? try(data.ibm_is_vpcs.us_south.vpcs, []) : []
-    "us-east"  = contains(var.regions, "us-east")  ? try(data.ibm_is_vpcs.us_east.vpcs,  []) : []
-    "ca-tor"   = contains(var.regions, "ca-tor")   ? try(data.ibm_is_vpcs.ca_tor.vpcs,   []) : []
-    "eu-de"    = contains(var.regions, "eu-de")    ? try(data.ibm_is_vpcs.eu_de.vpcs,    []) : []
-    "eu-gb"    = contains(var.regions, "eu-gb")    ? try(data.ibm_is_vpcs.eu_gb.vpcs,    []) : []
-    "au-syd"   = contains(var.regions, "au-syd")   ? try(data.ibm_is_vpcs.au_syd.vpcs,   []) : []
-    "jp-tok"   = contains(var.regions, "jp-tok")   ? try(data.ibm_is_vpcs.jp_tok.vpcs,   []) : []
-    "jp-osa"   = contains(var.regions, "jp-osa")   ? try(data.ibm_is_vpcs.jp_osa.vpcs,   []) : []
+    "us-east"  = contains(var.regions, "us-east") ? try(data.ibm_is_vpcs.us_east.vpcs, []) : []
+    "ca-tor"   = contains(var.regions, "ca-tor") ? try(data.ibm_is_vpcs.ca_tor.vpcs, []) : []
+    "eu-de"    = contains(var.regions, "eu-de") ? try(data.ibm_is_vpcs.eu_de.vpcs, []) : []
+    "eu-gb"    = contains(var.regions, "eu-gb") ? try(data.ibm_is_vpcs.eu_gb.vpcs, []) : []
+    "au-syd"   = contains(var.regions, "au-syd") ? try(data.ibm_is_vpcs.au_syd.vpcs, []) : []
+    "jp-tok"   = contains(var.regions, "jp-tok") ? try(data.ibm_is_vpcs.jp_tok.vpcs, []) : []
+    "jp-osa"   = contains(var.regions, "jp-osa") ? try(data.ibm_is_vpcs.jp_osa.vpcs, []) : []
   }
 
   # Full map: "<region>/<vpc-id>" → { region, vpc_id, vpc_name }
@@ -204,15 +204,15 @@ locals {
   ]))
 
   existing_flcs = {
-    "br-sao"   = contains(var.regions, "br-sao")   ? try(data.ibm_is_flow_logs.existing_br_sao.flow_log_collectors,   []) : []
+    "br-sao"   = contains(var.regions, "br-sao") ? try(data.ibm_is_flow_logs.existing_br_sao.flow_log_collectors, []) : []
     "us-south" = contains(var.regions, "us-south") ? try(data.ibm_is_flow_logs.existing_us_south.flow_log_collectors, []) : []
-    "us-east"  = contains(var.regions, "us-east")  ? try(data.ibm_is_flow_logs.existing_us_east.flow_log_collectors,  []) : []
-    "ca-tor"   = contains(var.regions, "ca-tor")   ? try(data.ibm_is_flow_logs.existing_ca_tor.flow_log_collectors,   []) : []
-    "eu-de"    = contains(var.regions, "eu-de")    ? try(data.ibm_is_flow_logs.existing_eu_de.flow_log_collectors,    []) : []
-    "eu-gb"    = contains(var.regions, "eu-gb")    ? try(data.ibm_is_flow_logs.existing_eu_gb.flow_log_collectors,    []) : []
-    "au-syd"   = contains(var.regions, "au-syd")   ? try(data.ibm_is_flow_logs.existing_au_syd.flow_log_collectors,   []) : []
-    "jp-tok"   = contains(var.regions, "jp-tok")   ? try(data.ibm_is_flow_logs.existing_jp_tok.flow_log_collectors,   []) : []
-    "jp-osa"   = contains(var.regions, "jp-osa")   ? try(data.ibm_is_flow_logs.existing_jp_osa.flow_log_collectors,   []) : []
+    "us-east"  = contains(var.regions, "us-east") ? try(data.ibm_is_flow_logs.existing_us_east.flow_log_collectors, []) : []
+    "ca-tor"   = contains(var.regions, "ca-tor") ? try(data.ibm_is_flow_logs.existing_ca_tor.flow_log_collectors, []) : []
+    "eu-de"    = contains(var.regions, "eu-de") ? try(data.ibm_is_flow_logs.existing_eu_de.flow_log_collectors, []) : []
+    "eu-gb"    = contains(var.regions, "eu-gb") ? try(data.ibm_is_flow_logs.existing_eu_gb.flow_log_collectors, []) : []
+    "au-syd"   = contains(var.regions, "au-syd") ? try(data.ibm_is_flow_logs.existing_au_syd.flow_log_collectors, []) : []
+    "jp-tok"   = contains(var.regions, "jp-tok") ? try(data.ibm_is_flow_logs.existing_jp_tok.flow_log_collectors, []) : []
+    "jp-osa"   = contains(var.regions, "jp-osa") ? try(data.ibm_is_flow_logs.existing_jp_osa.flow_log_collectors, []) : []
   }
 
   # Final map: only VPCs that do NOT already have a collector
@@ -238,15 +238,15 @@ locals {
 # 4b. Discover existing Flow Log Collectors (to skip VPCs already covered)
 ###############################################################################
 
-data "ibm_is_flow_logs" "existing_br_sao"   { provider = ibm.br_sao }
+data "ibm_is_flow_logs" "existing_br_sao" { provider = ibm.br_sao }
 data "ibm_is_flow_logs" "existing_us_south" { provider = ibm.us_south }
-data "ibm_is_flow_logs" "existing_us_east"  { provider = ibm.us_east }
-data "ibm_is_flow_logs" "existing_ca_tor"   { provider = ibm.ca_tor }
-data "ibm_is_flow_logs" "existing_eu_de"    { provider = ibm.eu_de }
-data "ibm_is_flow_logs" "existing_eu_gb"    { provider = ibm.eu_gb }
-data "ibm_is_flow_logs" "existing_au_syd"   { provider = ibm.au_syd }
-data "ibm_is_flow_logs" "existing_jp_tok"   { provider = ibm.jp_tok }
-data "ibm_is_flow_logs" "existing_jp_osa"   { provider = ibm.jp_osa }
+data "ibm_is_flow_logs" "existing_us_east" { provider = ibm.us_east }
+data "ibm_is_flow_logs" "existing_ca_tor" { provider = ibm.ca_tor }
+data "ibm_is_flow_logs" "existing_eu_de" { provider = ibm.eu_de }
+data "ibm_is_flow_logs" "existing_eu_gb" { provider = ibm.eu_gb }
+data "ibm_is_flow_logs" "existing_au_syd" { provider = ibm.au_syd }
+data "ibm_is_flow_logs" "existing_jp_tok" { provider = ibm.jp_tok }
+data "ibm_is_flow_logs" "existing_jp_osa" { provider = ibm.jp_osa }
 
 ###############################################################################
 # 5. Flow Log Collector – one per VPC, with explicit provider per region

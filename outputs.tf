@@ -21,29 +21,29 @@ output "iam_authorization_policy_id" {
 output "flow_log_collectors" {
   description = "Map of '<region>/<vpc-id>' → collector ID for every VPC enrolled by this run."
   value = merge(
-    { for k, v in ibm_is_flow_log.collectors_br_sao   : k => v.id },
+    { for k, v in ibm_is_flow_log.collectors_br_sao : k => v.id },
     { for k, v in ibm_is_flow_log.collectors_us_south : k => v.id },
-    { for k, v in ibm_is_flow_log.collectors_us_east  : k => v.id },
-    { for k, v in ibm_is_flow_log.collectors_ca_tor   : k => v.id },
-    { for k, v in ibm_is_flow_log.collectors_eu_de    : k => v.id },
-    { for k, v in ibm_is_flow_log.collectors_eu_gb    : k => v.id },
-    { for k, v in ibm_is_flow_log.collectors_au_syd   : k => v.id },
-    { for k, v in ibm_is_flow_log.collectors_jp_tok   : k => v.id },
-    { for k, v in ibm_is_flow_log.collectors_jp_osa   : k => v.id },
+    { for k, v in ibm_is_flow_log.collectors_us_east : k => v.id },
+    { for k, v in ibm_is_flow_log.collectors_ca_tor : k => v.id },
+    { for k, v in ibm_is_flow_log.collectors_eu_de : k => v.id },
+    { for k, v in ibm_is_flow_log.collectors_eu_gb : k => v.id },
+    { for k, v in ibm_is_flow_log.collectors_au_syd : k => v.id },
+    { for k, v in ibm_is_flow_log.collectors_jp_tok : k => v.id },
+    { for k, v in ibm_is_flow_log.collectors_jp_osa : k => v.id },
   )
 }
 
 output "flow_log_collectors_count" {
   description = "Number of Flow Log Collectors created by this run (excludes pre-existing ones)."
   value = (
-    length(ibm_is_flow_log.collectors_br_sao)   +
+    length(ibm_is_flow_log.collectors_br_sao) +
     length(ibm_is_flow_log.collectors_us_south) +
-    length(ibm_is_flow_log.collectors_us_east)  +
-    length(ibm_is_flow_log.collectors_ca_tor)   +
-    length(ibm_is_flow_log.collectors_eu_de)    +
-    length(ibm_is_flow_log.collectors_eu_gb)    +
-    length(ibm_is_flow_log.collectors_au_syd)   +
-    length(ibm_is_flow_log.collectors_jp_tok)   +
+    length(ibm_is_flow_log.collectors_us_east) +
+    length(ibm_is_flow_log.collectors_ca_tor) +
+    length(ibm_is_flow_log.collectors_eu_de) +
+    length(ibm_is_flow_log.collectors_eu_gb) +
+    length(ibm_is_flow_log.collectors_au_syd) +
+    length(ibm_is_flow_log.collectors_jp_tok) +
     length(ibm_is_flow_log.collectors_jp_osa)
   )
 }
