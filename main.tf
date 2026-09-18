@@ -115,10 +115,10 @@ locals {
 ###############################################################################
 
 resource "ibm_cos_bucket" "flow_logs" {
-  bucket_name            = "vpc-flow-log-${var.account_name}"
-  resource_instance_id   = local.cos_instance_id
-  single_region_location = "eu-de"
-  storage_class          = "standard"
+  bucket_name          = "${var.cos_bucket_name_prefix}-flow-logs"
+  resource_instance_id = ibm_resource_instance.cos.id
+  region_location      = "eu-de"      # was single_region_location
+  storage_class        = "standard"
 }
 
 ###############################################################################
